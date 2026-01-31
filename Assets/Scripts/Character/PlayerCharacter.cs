@@ -17,7 +17,7 @@ public class PlayerCharacter : Character
     public GameObject cardPrefab;
 
     public GameObject CardZone;
-    public GameObject SPG;
+
     public TextMeshPro text;
     public CardLayout cardLayout;
     public BoxCollider2D boxColl;
@@ -127,6 +127,7 @@ public class PlayerCharacter : Character
                 };//
             };
             currentCard.GetComponent<SortingGroup>().sortingOrder = i;
+            currentCard.orSortingGroup = i;
             currentCard.UpdatePosRot(cardTransForm.pos, cardTransForm.rotation);
         }
     }

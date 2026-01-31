@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Rendering;
 
 public class CardPhysicallyEffect : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
 {
@@ -32,7 +33,7 @@ public class CardPhysicallyEffect : MonoBehaviour, IBeginDragHandler, IDragHandl
         {
             return;
         }
-
+        card.GetComponent<SortingGroup>().sortingOrder = 50;
         // card.Entry.transform.position = card.originalPosition;
         if (card.cardType == CardType.AttackCard || card.cardType == CardType.PAffectCard)
         {
@@ -92,6 +93,7 @@ public class CardPhysicallyEffect : MonoBehaviour, IBeginDragHandler, IDragHandl
     public void OnEndDrag(PointerEventData eventData)
     {
         isDrag = false;
+        card.GetComponent<SortingGroup>().sortingOrder = card.orSortingGroup;
         if (currentArrow != null)
         {
             Destroy(currentArrow.gameObject);

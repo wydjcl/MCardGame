@@ -1,3 +1,4 @@
+using DG.Tweening;
 using Mirror;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,6 +13,7 @@ public class Character : PhysicallyObject
     [HideInInspector]
     public Vector3 effectPos;
 
+    public GameObject SPG;
     public int ID;
 
     public int MaxHP;
@@ -68,5 +70,25 @@ public class Character : PhysicallyObject
 
     public virtual void UpdateUI()
     {
+    }
+
+    [ContextMenu("DoAni")]
+    public void DoAni1()
+    {
+        DoAni(1);
+    }
+
+    public virtual void DoAni(int i)
+    {
+        var orSPG = SPG.transform.localScale;
+        Sequence seq = DOTween.Sequence();
+        seq.Append(SPG.transform.DOScale(orSPG * 0.75f, 0.5f).SetEase(Ease.Linear));
+        seq.Append(SPG.transform.DOScale(orSPG, 0.3f).SetEase(Ease.Linear));
+    }
+
+    private void OnDestroy()
+    {
+        if (SPG != null)
+            DOTween.Kill(SPG.transform);
     }
 }

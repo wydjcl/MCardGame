@@ -14,7 +14,7 @@ public class Card : MonoBehaviour, IPointerClickHandler
     public TextMeshPro nameText;
     public TextMeshPro desText;
     public SpriteRenderer cardSprite;
-
+    public int orSortingGroup;
     [Header("Pos")]
     public bool isAni = true;
 
