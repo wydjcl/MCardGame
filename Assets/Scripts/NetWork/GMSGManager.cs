@@ -8,8 +8,6 @@ public class GMSGManager : NetworkSingleton<GMSGManager>
 {
     public BattleManager battleManager;
     public TurnStateMachine turnStateMachine;
-    public int playerCount;
-    public List<Player> playerList;
 
     private void Start()
     {
@@ -20,8 +18,12 @@ public class GMSGManager : NetworkSingleton<GMSGManager>
         //服务端接收到,中转到每个客户端
         RegisterForward<CauseDamage>();
         RegisterForward<CauseHeal>();
+        RegisterForward<ChangeMP>();
         RegisterForward<ArgeeEndTurn>();
         RegisterForward<CountPlayerNum>();
+        NetworkServer.RegisterHandler<ReadPlayerDataQuest>(ServerSendPlayerData);//服务端接收客户端请求读取玩家数据
+
+        NetworkServer.RegisterHandler<PlayerMSG>(ClientChangePlayerDataMSG);
     }
 
     public override void OnStartClient()
@@ -29,8 +31,10 @@ public class GMSGManager : NetworkSingleton<GMSGManager>
         //客户端接受到进行处理
         RegisterClientHandler<CauseDamage>(OnCauseDamageMsg);
         RegisterClientHandler<CauseHeal>(OnCauseHeal);
+        RegisterClientHandler<ChangeMP>(OnChangeMPMsg);
         RegisterClientHandler<ArgeeEndTurn>(OnArgeeEndTurn);
         RegisterClientHandler<CountPlayerNum>(OnCountPlayerNum);
+        RegisterClientHandler<PlayerDataMSG>(OnReadPlayerDataQuest);
     }
 
     [ContextMenu("测试")]
@@ -110,7 +114,7 @@ public class GMSGManager : NetworkSingleton<GMSGManager>
 
     private void OnCountPlayerNum(CountPlayerNum msg)
     {
-        playerCount = msg.playerCount;
+        GNetData.Instance.playerCount = msg.playerCount;
     }
 
     private void OnArgeeEndTurn(ArgeeEndTurn msg)
@@ -120,7 +124,7 @@ public class GMSGManager : NetworkSingleton<GMSGManager>
         {
             turnStateMachine.agreeCount++;
 
-            if (turnStateMachine.agreeCount >= playerCount)
+            if (turnStateMachine.agreeCount >= GNetData.Instance.playerCount)
             {
                 Debug.Log("全票同意通过到下一回合");
                 turnStateMachine.EnterNextTurnState();
@@ -134,12 +138,35 @@ public class GMSGManager : NetworkSingleton<GMSGManager>
         }
         if (turnStateMachine.agree)
         {
-            turnStateMachine.turnButtomText.text = ($"已确认{turnStateMachine.agreeCount}/{playerCount}");
+            turnStateMachine.turnButtomText.text = ($"已确认{turnStateMachine.agreeCount}/{GNetData.Instance.playerCount}");
         }
         else
         {
-            turnStateMachine.turnButtomText.text = ($"结束回合{turnStateMachine.agreeCount}/{playerCount}");
+            turnStateMachine.turnButtomText.text = ($"结束回合{turnStateMachine.agreeCount}/{GNetData.Instance.playerCount}");
         }
+    }
+
+    private void OnChangeMPMsg(ChangeMP msg)
+    {
+        Character c = null;
+        PlayerCharacter player = null;
+        foreach (var character in battleManager.characterList)
+        {
+            if (character.ID == msg.playerID)
+            {
+                c = character;
+                player = c as PlayerCharacter;
+            }
+        }
+        if (msg.isFull)
+        {
+            player.MP = player.MaxMP;
+        }
+        else
+        {
+            player.MP -= msg.deleteAmout;
+        }
+        player.UpdateUI();
     }
 
     private void OnCauseDamageMsg(CauseDamage msg)
@@ -179,5 +206,45 @@ public class GMSGManager : NetworkSingleton<GMSGManager>
             }
         }
         caster.CauseHeal(target, msg.healAmount);
+    }
+
+    /// <summary>
+    /// 服务器给客户端转发角色信息
+    /// </summary>
+    /// <param name="msg"></param>
+    public void ServerSendPlayerData(NetworkConnectionToClient conn, ReadPlayerDataQuest msg)
+    {
+        var msg2 = new PlayerDataMSG();
+        msg2.playerCount = GNetData.Instance.playerCount;
+        msg2.playerIDs = new List<int>();
+        foreach (var p in GNetData.Instance.playerList)
+        {
+            msg2.playerIDs.Add(p.playerID);
+        }
+        conn.Send(msg2);
+    }
+
+    public void OnReadPlayerDataQuest(PlayerDataMSG msg)
+    {
+        //  Debug.Log("客户端收到 请求读取玩家数据");
+        // Debug.Log($"当前玩家数量:{msg.playerCount}");
+        foreach (var id in msg.playerIDs)
+        {
+            // Debug.Log($"玩家ID:{id}");
+        }
+    }
+
+    public void ClientChangePlayerDataMSG(NetworkConnectionToClient conn, PlayerMSG msg)
+    {
+        foreach (var p in GNetData.Instance.playerList)
+        {
+            if (p.playerID == msg.playerID)
+            {
+                p.HP = msg.HP;
+                p.MaxHP = msg.MaxHP;
+                p.MP = msg.MP;
+                p.MaxMP = msg.MaxMP;
+            }
+        }
     }
 }

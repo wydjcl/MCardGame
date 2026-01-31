@@ -50,6 +50,11 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   playerID: -999
+  HP: 66
+  MaxHP: 77
+  MP: 5
+  MaxMP: 5
+  cardStringList: []
   cardList:
   - {fileID: 11400000, guid: e1ce5c46eedf16a4796f80b0ae5067a3, type: 2}
   - {fileID: 11400000, guid: e1ce5c46eedf16a4796f80b0ae5067a3, type: 2}

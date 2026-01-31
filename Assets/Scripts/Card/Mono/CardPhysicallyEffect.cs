@@ -25,10 +25,10 @@ public class CardPhysicallyEffect : MonoBehaviour, IBeginDragHandler, IDragHandl
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        //if (card.player.MP < card.cardCost)
-        //{
-        //    return;
-        //}
+        if (card.player.MP < card.cardCost)
+        {
+            return;
+        }
         if (card.isAni)
         {
             return;
@@ -43,10 +43,10 @@ public class CardPhysicallyEffect : MonoBehaviour, IBeginDragHandler, IDragHandl
 
     public void OnDrag(PointerEventData eventData)
     {
-        //if (card.player.MP < card.cardCost)
-        //{
-        //    return;
-        //}
+        if (card.player.MP < card.cardCost)
+        {
+            return;
+        }
         if (card.isAni)
         {
             return;

@@ -15,6 +15,7 @@ public class Card : MonoBehaviour, IPointerClickHandler
     public TextMeshPro desText;
     public SpriteRenderer cardSprite;
     public int orSortingGroup;
+
     [Header("Pos")]
     public bool isAni = true;
 
@@ -74,10 +75,19 @@ public class Card : MonoBehaviour, IPointerClickHandler
     public void Effect(Character caster, Character target, Card card)
     {
         // Debug.Log("执行效果caster:" + caster.gameObject.name + "target:" + target.gameObject.name);
+        //player.MP -= card.cardCost;
+        var msg = new ChangeMP
+        {
+            playerID = player.ID,
+            deleteAmout = card.cardCost,
+            isFull = false,
+        };
+        GMSGManager.Instance.SendToServer(msg);
         foreach (var effect in data.cardEffects)
         {
             effect.ApplyEffect(caster, target, this);
         }
+        player.UpdateUI();
     }
 
     public string GetDescription(string s)

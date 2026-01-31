@@ -8,6 +8,21 @@ public class Player : NetworkBehaviour
     [SyncVar(hook = nameof(ChangeID))]
     public int playerID;
 
+    [SyncVar]
+    public int HP;
+
+    [SyncVar]
+    public int MaxHP;
+
+    [SyncVar]
+    public int MP;
+
+    [SyncVar]
+    public int MaxMP;
+
+    [SyncVar]
+    public List<string> cardStringList;
+
     public List<CardDataSO> cardList;
 
     [ContextMenu("测试")]
@@ -26,11 +41,23 @@ public class Player : NetworkBehaviour
 
     public void ChangeID(int oldID, int newID)
     {
-        Debug.Log($"玩家ID变化: {oldID} -> {newID}");
+        // Debug.Log($"玩家ID变化: {oldID} -> {newID}");
     }
 
-    private void Start()
+    [ContextMenu("改变本地玩家数据")]
+    public void ChangePlayerData()
     {
-        GMSGManager.Instance.playerList.Add(this);
+        PlayerMSG msg = new PlayerMSG
+        {
+            playerID = playerID,
+            HP = 900,
+            MaxHP = 999
+        };
+        GMSGManager.Instance.SendToServer(msg);
+    }
+
+    public void Start()
+    {
+        GNetData.Instance.playerList.Add(this);
     }
 }

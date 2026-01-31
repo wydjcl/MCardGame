@@ -3,6 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PhysicallyObject : MonoBehaviour
+public class PhysicallyObject : NetworkBehaviour
 {
 }

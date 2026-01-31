@@ -27,9 +27,9 @@ public class MyNetWorkManager : NetworkManager
 
     public override void OnServerDisconnect(NetworkConnectionToClient conn)
     {
-        GMSGManager.Instance.playerList.Remove(conn.identity.GetComponent<Player>());
+        GNetData.Instance.playerList.Remove(conn.identity.GetComponent<Player>());
         base.OnServerDisconnect(conn);
-        Invoke(nameof(SendPlayerCount), 0.7f);
+        Invoke(nameof(SendPlayerCount), 0.5f);
     }
 
     private void SendPlayerCount()
@@ -45,6 +45,6 @@ public class MyNetWorkManager : NetworkManager
     [ContextMenu("测试")]
     public void Test()
     {
-        Debug.Log("玩家连接数：" + GMSGManager.Instance.playerCount);
+        Debug.Log("玩家连接数：" + GNetData.Instance.playerCount);
     }
 }

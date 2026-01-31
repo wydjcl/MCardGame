@@ -16,8 +16,8 @@ public class TurnStateMachine : MonoBehaviour
     {
         //EnterNextTurnState();
         GMSGManager.Instance.turnStateMachine = this;
-        Debug.Log("开始游戏的时候" + GMSGManager.Instance.playerCount);
-        turnButtomText.text = "结束回合0/" + GMSGManager.Instance.playerCount;
+        //Debug.Log("开始游戏的时候" + GNetData.Instance.playerCount);
+        turnButtomText.text = "结束回合0/" + GNetData.Instance.playerCount;
     }
 
     [ContextMenu("进入下一阶段")]
@@ -33,7 +33,7 @@ public class TurnStateMachine : MonoBehaviour
         {
             battleManager.PlayerTurnBegin();
             Debug.Log("进入玩家回合");
-            turnButtomText.text = "结束回合0/" + GMSGManager.Instance.playerCount;
+            turnButtomText.text = "结束回合0/" + GNetData.Instance.playerCount;
             EnterNextTurnState();
             return;
         }

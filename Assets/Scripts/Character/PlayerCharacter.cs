@@ -22,6 +22,9 @@ public class PlayerCharacter : Character
     public CardLayout cardLayout;
     public BoxCollider2D boxColl;
     public TextMeshPro HPText;
+    public TextMeshPro MPText;
+    public TextMeshPro DSText;
+    public GameObject arrowIcon;
 
     [Header("牌组")]
     public List<CardDataSO> cardList;
@@ -31,10 +34,20 @@ public class PlayerCharacter : Character
     public List<Card> discardDeckList = new List<Card>();
     public List<Card> removeDeckList = new List<Card>();
 
+    [Header("玩家数据")]
+    public int MP;
+
+    public int MaxMP;
+
     public override void Awake()
     {
         base.Awake();
         cardLayout = FindObjectOfType<CardLayout>();
+        var zone = GameObject.Find("PlayerZone");
+        if (zone != null)
+        {
+            transform.SetParent(zone.transform, false);
+        }
     }
 
     public override void Start()
@@ -43,14 +56,18 @@ public class PlayerCharacter : Character
         //InitPlayerCharacter();
     }
 
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+
+        HP = player.HP;
+        MaxHP = player.MaxHP;
+    }
+
     public void InitPlayerCharacter()
     {
         //Debug.Log("正在初始化角色...");
-        var zone = GameObject.Find("PlayerZone");
-        if (zone != null)
-        {
-            transform.SetParent(zone.transform, false);
-        }
+        CardZone = GameObject.Find("CardZone");
         ReadCardData();
         foreach (var conn in NetworkServer.connections.Values)
         {
@@ -59,34 +76,19 @@ public class PlayerCharacter : Character
             //Debug.Log(NetworkServer.connections.Values.Count);
         }
         //DrawCard(3);
-        if (player == NetworkClient.localPlayer.GetComponent<Player>())
-        {
-            text.text = "你";
 
-            if (NetworkServer.active)
-            {
-                SPG.transform.position = new Vector3(-7.4f, -2f, 0);
-            }
-            else
-            {
-                SPG.transform.position = new Vector3(-4.7f, -2f, 0);
-            }
+        if (NetworkClient.connection.identity.GetComponent<Player>() == player)
+        {
+            arrowIcon.SetActive(true);
         }
         else
         {
-            text.text = "队友";
-            CardZone.SetActive(false);
-            if (NetworkServer.active)
-            {
-                SPG.transform.position = new Vector3(-4.7f, -2f, 0);
-            }
-            else
-            {
-                SPG.transform.position = new Vector3(-7.4f, -2, 0);
-            }
+            //CardZone.SetActive(false);
+            arrowIcon.SetActive(false);
         }
+
         UpdateUI();
-        // battleManager.characterList.Add(this);
+        battleManager.characterList.Add(this);
         // Debug.Log("角色初始化成功");
     }
 
@@ -221,12 +223,34 @@ public class PlayerCharacter : Character
     public override void SetEffectPos()
     {
         effectPos = SPG.transform.position;
-        boxColl.offset = effectPos;
+        // boxColl.offset = effectPos;
     }
 
     public override void UpdateUI()
     {
         base.UpdateUI();
         HPText.text = "HP:" + HP + "/" + MaxHP;
+        MPText.text = "MP:" + MP + "/" + MaxMP;
+        DSText.text = "DS:" + Defense;
+    }
+
+    public override void TurnStart()
+    {
+        base.TurnStart();
+        DrawCard(3);
+        var msg = new ChangeMP
+        {
+            playerID = ID,
+            isFull = true,
+        };
+        GMSGManager.Instance.SendToServer(msg);
+        UpdateUI();
+    }
+
+    public override void TurnEnd()
+    {
+        base.TurnEnd();
+        DiscardAllCard();
+        UpdateUI();
     }
 }

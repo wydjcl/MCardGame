@@ -4,7 +4,7 @@ using Mirror;
 using Unity.VisualScripting;
 using System;
 
-public class BattleManager : MonoBehaviour
+public class BattleManager : NetworkBehaviour
 {
     public Canvas canvas;
     public GameObject playerCharater;
@@ -16,53 +16,64 @@ public class BattleManager : MonoBehaviour
     private void Start()
     {
         canvas.worldCamera = Camera.main;
-
+        SeverStart();
+        ClientQuestReadPlayerData();
         SpawnPlayer();
         SpawnEnemy();
         GMSGManager.Instance.battleManager = this;
     }
 
+    /// <summary>
+    /// 服务器启动调用
+    /// </summary>
+    public void SeverStart()
+    {
+        if (!isServer)
+        {
+            return;
+        }
+        //Debug.Log("服务器调用");
+    }
+
+    public void ClientQuestReadPlayerData()
+    {
+        if (!isClient)
+        {
+            return;
+        }
+        var msg = new ReadPlayerDataQuest();
+        GMSGManager.Instance.SendToServer(msg);
+    }
+
     public void SpawnPlayer()
     {
-        //if (!NetworkServer.active)
-        //{
-        //    return;
-        //}
-
-        //int ii = -1;
-        //foreach (var conn in NetworkServer.connections.Values)
-        //{
-        //    var p = Instantiate(playerCharater, playerZone.transform);
-        //    var pc = p.GetComponent<PlayerCharacter>();
-        //    pc.player = conn.identity.GetComponent<Player>();
-        //    //pc.SPG.transform.position = new Vector3(i * 5.5f, 0, 0);
-        //    //pc.cardList = conn.identity.GetComponent<Player>().cardList;
-
-        //    //pc.datas= GGameManager.Instance.GetPlayerData(conn).datas;
-        //    NetworkServer.Spawn(p, conn);//绑定到conn上
-        //    ii += 2;
-        //    //pc.InitPlayerCharacter();//客户端不执行,在spawn后在start里执行
-        //}
-        //Debug.Log("battlemanager创建角色完成");
-
-        //for (int i = 0; i < GMSGManager.Instance.playerCount; i++)
-        //{
-        //    var p = Instantiate(playerCharater, playerZone.transform);
-        //    var pc = p.GetComponent<PlayerCharacter>();
-        //    pc.player
-        //}
-        Debug.Log("battlemanager");
-        int i = 0;
-        foreach (var p in GMSGManager.Instance.playerList)
+        if (GNetData.Instance.playerList.Count == 1)
         {
-            var pg = Instantiate(playerCharater, playerZone.transform);
-            var pc = pg.GetComponent<PlayerCharacter>();
-            characterList.Add(pc);
-            if (p.isOwned)
-            {
-                pc.player = p;
-            }
+            Debug.Log("单人游戏");
+        }
+        else
+        {
+            Debug.Log("双人游戏战斗场景创建角色中...");
+        }
+        int i = 0;
+        foreach (var player in GNetData.Instance.playerList)
+        {
+            var p = Instantiate(playerCharater, playerZone.transform);
+            var pc = p.GetComponent<PlayerCharacter>();
+            pc.player = player;
             pc.ID = i;
+            pc.HP = player.HP;
+            pc.MaxHP = player.MaxHP;
+            pc.MP = player.MP;
+            pc.MaxMP = player.MaxMP;
+            if (i == 0)
+            {
+                pc.transform.position = new Vector3(-7.4f, -1.6f, 0);
+            }
+            if (i == 1)
+            {
+                pc.transform.position = new Vector3(-4.32f, -1.6f, 0);
+            }
             pc.InitPlayerCharacter();
             i++;
         }
@@ -111,11 +122,12 @@ public class BattleManager : MonoBehaviour
 
     public void PlayerTurnBegin()
     {
-        GetOwnePlayer().DrawCard(3);
+        GetOwnePlayer().TurnStart();
     }
 
     public void PlayerTurnEnd()
     {
+        GetOwnePlayer().TurnEnd();
         GetOwnePlayer().DiscardAllCard();
     }
 }
